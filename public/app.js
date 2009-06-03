@@ -61,7 +61,7 @@
         $('.repo').show().removeClass('faded');
         showMessages();
       });
-      
+
       on.empty(function() {
         $('.repo').hide();
         showMessages();

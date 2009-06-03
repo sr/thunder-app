@@ -1,27 +1,27 @@
 <div id="repos">
   <h1>
-    Repositories for <%= @user.name %> 
+    Repositories for <%= @user.name %>
     <small>Rule them out until you figure out what to talk about.</small>
     <small> - </small>
     <small>
       <a href="#show">Show All</a> or <a href="#hide">Hide All</a>
     </small>
   </h1>
-  
+
   <div id="search">
     <form action="/search" method="get">
       <label>
-        Search: 
-        <input type="text" name="q" value=""> 
+        Search:
+        <input type="text" name="q" value="">
       </label>
     </form>
   </div>
-  
+
   <h2 id="winner" style="display:none"></h2>
   <h2 id="loser" style="display:none">
     So you've got nothing to talk about. Better luck next time!
   </h2>
-  
+
   <% @repos.each_with_index do |repo, i| %>
     <div class="repo" id="repo-<%= i %>">
       <div>
@@ -34,7 +34,7 @@
       </dl>
     </div>
   <% end %>
-  
+
   <% if @repos.empty? %>
     <p class="no-repos">
       <%= @user.name %> doesn't have any repositories.

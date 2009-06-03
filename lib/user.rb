@@ -9,9 +9,9 @@ class User < ActiveRecord::Base
   def self.get(username)
     find_or_create_by_name(username)
   end
-  
+
   validates_presence_of :name
-  
+
   after_create :enqueue!, :unless => :loaded?
 
   def perform
@@ -21,11 +21,11 @@ class User < ActiveRecord::Base
     else update_attributes!(:body => { 'unknown' => true }.to_yaml)
     end
   end
-  
+
   def refresh!
     perform unless fresh?
   end
-  
+
   def fresh?
     expires_in > 0
   end
@@ -33,7 +33,7 @@ class User < ActiveRecord::Base
   def loaded?
     fresh? and yaml.values_at('repositories', 'unknown').any?
   end
-  
+
   def expires_in
     [updated_at.to_i - 1.hour.ago.to_i, 0].max
   end

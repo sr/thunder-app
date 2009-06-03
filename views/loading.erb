@@ -3,13 +3,13 @@
     font-size: 40px;
     text-align: center;
   }
-  
+
   a {
     color: #00f;
     text-decoration: none;
     font-size: 20px;
   }
-  
+
   h2 {
     margin: 1em auto;
   }
@@ -22,7 +22,7 @@
 <script type="text/javascript" charset="utf-8">
   (function($) {
     var timer;
-    
+
     function ping() {
       timer && window.clearTimeout(timer);
       $.ajax({
@@ -30,7 +30,7 @@
         success: handle
       });
     }
-    
+
     function handle(data) {
       if (data) {
         timer && window.clearTimeout(timer);
@@ -39,7 +39,7 @@
         timer = window.setTimeout(ping, 1000);
       }
     }
-    
+
     handle();
   })(jQuery);
 </script>

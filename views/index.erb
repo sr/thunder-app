@@ -20,12 +20,12 @@
     font-size: 30px;
     padding: 2px;
   }
-  
+
   input.invalid {
     border: 2px solid #f71;
     background: #fda;
   }
-  
+
   input.invalid:focus {
     outline: 2px solid #f71;
   }
@@ -43,11 +43,11 @@
   <h1>
     Thunder <small>Before Lightning (talks) comes thunder.</small>
   </h1>
-  
+
   <% if flash.has?(:error) %>
     <div class="flash error">
       Oops!
-      <strong>&ldquo;<%= flash[:error] %>&rdquo;</strong> isn't on the GitHub. 
+      <strong>&ldquo;<%= flash[:error] %>&rdquo;</strong> isn't on the GitHub.
       <br>
       Sure you spelled it right?
     </div>
