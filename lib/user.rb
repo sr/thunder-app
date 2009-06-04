@@ -65,7 +65,7 @@ class User
       next unless [302, 200].include?(http.response_header.status)
 
       puts "cache miss"
-      remote_etag = http.response_header["ETAG"]
+      remote_etag = http.response_header["ETAG"].delete('"')
       User.cache.set(name, [remote_etag, http.response])
     }
   end
