@@ -1,5 +1,6 @@
 require 'yaml'
 require 'ostruct'
+require 'iconv'
 
 class User
   def self.cache
@@ -66,7 +67,11 @@ class User
 
       puts "cache miss"
       remote_etag = http.response_header["ETAG"].delete('"')
-      User.cache.set(name, [remote_etag, http.response])
+      User.cache.set(name, [remote_etag, normalize(http.response).to_s])
     }
+  end
+
+  def normalize(string)
+    Iconv.iconv("ascii//translit//IGNORE", "utf-8", string)
   end
 end
