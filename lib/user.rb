@@ -19,7 +19,7 @@ class User
   def initialize(name)
     @name = name
 
-    EM.next_tick { load_data }
+    EM.next_tick { fetch }
   end
 
   def loaded?
@@ -52,7 +52,7 @@ class User
 
   private
 
-  def load_data
+  def fetch
     uri     = "http://github.com/api/v2/yaml/repos/show/#{name}"
     etag    = User.cache.get(name)
     headers = etag ? {"If-None-Match" => etag} : {}
