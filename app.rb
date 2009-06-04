@@ -9,9 +9,8 @@ require 'memcache'
 require File.join(File.dirname(__FILE__), *%w[lib user])
 
 class Thunder < Sinatra::Default
-  set :root, File.dirname(__FILE__)
+  set :app_file, __FILE__
   set :static, true
-  set :public, File.join(root, 'public')
   enable :sessions
 
   use Rack::Flash
