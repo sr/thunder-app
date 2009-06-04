@@ -1,16 +1,12 @@
 $:.unshift *Dir[File.dirname(__FILE__) + "/vendor/*/lib"]
 
 require 'sinatra/base'
-require 'open-uri'
-require 'net/http'
 require 'rack-flash'
-require 'activerecord'
-require 'delayed_job'
-require 'typhoeus'
 require 'logger'
-require File.join(File.dirname(__FILE__), *%w[lib user])
+require 'em-http'
+require 'memcache'
 
-class ThrottledError < StandardError ; end
+require File.join(File.dirname(__FILE__), *%w[lib user])
 
 class Thunder < Sinatra::Default
   set :root, File.dirname(__FILE__)
@@ -19,15 +15,6 @@ class Thunder < Sinatra::Default
   enable :sessions
 
   use Rack::Flash
-
-  configure do
-    config = YAML::load_file('config/database.yml')
-    environment = Sinatra::Application.environment.to_s
-    ActiveRecord::Base.logger = Logger.new($stdout)
-    ActiveRecord::Base.establish_connection(
-      config[environment]
-    )
-  end
 
   helpers do
     def check_user(user)
@@ -62,17 +49,9 @@ class Thunder < Sinatra::Default
 
   get '/~:username?' do
     @user = User.get(params[:username])
-    @user.refresh!
-
     return erb(:loading) unless @user.loaded?
 
-    begin
-      @repos = @user.repos
-      erb(:show)
-    rescue ThrottledError
-      erb :throttled
-    rescue Exception => err
-      check_user(@user)
-    end
+    @repos = @user.repos
+    erb(:show)
   end
 end

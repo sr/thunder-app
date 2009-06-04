@@ -1,48 +1,45 @@
 require 'yaml'
 require 'ostruct'
 
-class User < ActiveRecord::Base
-  def self.api
-    @api ||= Class.new { include Typhoeus }
+class User
+  def self.cache
+    @@cache ||= if MemCache.respond_to?(:cache)
+      MemCache.cache
+    else
+      MemCache.new("0.0.0.0:11211")
+    end
   end
 
   def self.get(username)
-    find_or_create_by_name(username)
+    new(username)
   end
 
-  validates_presence_of :name
+  attr_accessor :name
 
-  after_create :enqueue!, :unless => :loaded?
+  def initialize(name)
+    @name = name
 
-  def perform
-    case
-    when loaded? then return true
-    when exists? then load_data
-    else update_attributes!(:body => { 'unknown' => true }.to_yaml)
-    end
-  end
-
-  def refresh!
-    perform unless fresh?
-  end
-
-  def fresh?
-    expires_in > 0
+    EM.next_tick { load_data }
   end
 
   def loaded?
-    fresh? and yaml.values_at('repositories', 'unknown').any?
-  end
-
-  def expires_in
-    [updated_at.to_i - 1.hour.ago.to_i, 0].max
+    etag && body
   end
 
   def exists?
-    @exists ||= begin
-      res = User.api.get("http://github.com/#{name}")
-      res.code.to_i != 404
-    end
+    true # TODO
+  end
+
+  def etag
+    User.cache.get(name)
+  end
+
+  def body
+    User.cache.get(etag)
+  end
+
+  def yaml
+    @yaml ||= loaded? ? YAML.load(body) : {}
   end
 
   def repos
@@ -53,31 +50,22 @@ class User < ActiveRecord::Base
     end
   end
 
-  def enqueue!
-    Delayed::Job.enqueue(self)
-    update_attributes! :body => { :pending => true }.to_yaml
-  end
-
   private
 
-  def yaml
-    @yaml ||= body ? YAML.load(body) : {}
-  end
-
   def load_data
-    begin
-      puts "** Fetching repo data for #{name}"
-      data = User.api.get("http://github.com/api/v2/yaml/repos/show/#{name}").body
-      update_attributes! :body => data
-    rescue => err
-      if throttled?(err)
-        update_attributes! :body => nil
-        raise(ThrottledError.new)
-      end
-    end
-  end
+    uri     = "http://github.com/api/v2/yaml/repos/show/#{name}"
+    etag    = User.cache.get(name)
+    headers = etag ? {"If-None-Match" => etag} : {}
 
-  def throttled?(err)
-    err.is_a?(OpenURI::HTTPError) and err.message == '403 Forbidden'
+    puts "** Fetching repo data for #{name}"
+    http = EventMachine::HttpRequest.new(uri).get(:head => headers)
+    http.callback {
+      next unless [302, 200].include?(http.response_header.status)
+
+      puts "cache miss"
+      remote_etag = http.response_header["ETAG"]
+      User.cache.set(name, remote_etag)
+      User.cache.set(remote_etag, http.response)
+    }
   end
 end
