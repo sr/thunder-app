@@ -22,13 +22,11 @@ class User
     EM.next_tick { fetch }
   end
 
-  def loaded?
-    cache
-  end
-
   def cache
     @cache ||= User.cache.get(name)
   end
+
+  alias_method :loaded?, :cache
 
   def exists?
     true # TODO
