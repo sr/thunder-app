@@ -23,7 +23,11 @@ class User
   end
 
   def loaded?
-    etag && body
+    cache
+  end
+
+  def cache
+    @cache ||= User.cache.get(name)
   end
 
   def exists?
@@ -31,11 +35,11 @@ class User
   end
 
   def etag
-    User.cache.get(name)
+    cache && cache.first
   end
 
   def body
-    User.cache.get(etag)
+    cache && cache.last
   end
 
   def yaml
@@ -64,8 +68,7 @@ class User
 
       puts "cache miss"
       remote_etag = http.response_header["ETAG"]
-      User.cache.set(name, remote_etag)
-      User.cache.set(remote_etag, http.response)
+      User.cache.set(name, [remote_etag, http.response])
     }
   end
 end
