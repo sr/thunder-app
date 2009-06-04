@@ -15,15 +15,13 @@ class Thunder < Sinatra::Default
 
   use Rack::Flash
 
-  helpers do
-    def check_user(user)
-      if user.exists?
-        @repos = user.repos
-        @repos ? erb(:show) : erb(:loading)
-      else
-        flash[:error] = params[:username]
-        redirect '/'
-      end
+  def check_user(user)
+    if user.exists?
+      @repos = user.repos
+      @repos ? erb(:show) : erb(:loading)
+    else
+      flash[:error] = params[:username]
+      redirect '/'
     end
   end
 
