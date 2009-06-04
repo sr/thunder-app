@@ -49,6 +49,7 @@ class Thunder < Sinatra::Default
     return erb(:loading) unless @user.loaded?
 
     @repos = @user.repos
-    erb(:show)
+    etag @user.etag
+    erb :show
   end
 end
